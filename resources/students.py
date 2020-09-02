@@ -63,9 +63,11 @@ class Students(Resource):
 class StudentList(Resource):
     method_decorators = []
 
-    @auth_admin(inject=False)
+    # @auth_admin(inject=False)
     def get(self):
         students = models.Student.query.filter_by()
+        for student in students:
+            print(student)
         data = [marshal(student, student_fields) for student in students]
         return {'data': data}, HTTP_OK
 

@@ -8,6 +8,7 @@ def recover_schema(schema: models.Schema, overwrite=False):
     if overwrite and os.path.exists(schema.path):
         os.remove(schema.path)
     if not os.path.exists(schema.path) or overwrite:
+        print(schema.path)
         conn = sqlite3.connect(schema.path)
         cur = conn.cursor()
         tables = models.Table.query.filter_by(idSchema=schema.id)
@@ -42,6 +43,7 @@ def judge_schema_table_rows_empty(idSchema):
         return True
     for t in tables:
         rows = models.Insert.query.filter_by(idTable=t.id)
+        print(rows)
         if rows.first() is None:
             return True
     return False

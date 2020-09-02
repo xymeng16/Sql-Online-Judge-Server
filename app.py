@@ -12,12 +12,14 @@ from resources.question import QuestionList, Questions
 from resources.answer import AnswerList, Answers
 from resources.segmentation import Segmentation, SegmentationList
 from resources.submit import SubmitList, Submits
+from resources.stats import CorrectRate, Stats, CheckResult
 
 import config
 
 app = Flask(__name__)
 api = Api(app, errors=config.errors)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:123456@localhost/sql_online_judge'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/sql_online_judge'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 flask_cors.CORS(app)
 
@@ -54,6 +56,9 @@ api.add_resource(Submits, '/student/<int:idStudent>/submit/<int:submit_id>')
 api.add_resource(SubmitList, '/submit', '/question/<int:idQuestion>/submit',
                  '/question/<int:idQuestion>/student/<int:idStudent>/submit')
 
+api.add_resource(CorrectRate, '/question/<int:question_id>/correct_rate')
+api.add_resource(Stats, '/question/<int:question_id>/stats')
+api.add_resource(CheckResult, '/check_result/<int:submit_id>')
 
 if __name__ == '__main__':
     app.run(debug=True)

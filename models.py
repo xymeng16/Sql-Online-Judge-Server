@@ -19,7 +19,7 @@ class Schema(db.Model):
     id = db.Column(INTEGER(11), primary_key=True, unique=True)
     name = db.Column(db.String(45), nullable=False)
     path = db.Column(db.String(200), nullable=False, unique=True)
-    keywords = db.Column(db.String(10000), nullable=False,)
+    keywords = db.Column(db.String(10000), nullable=False, )
     description = db.Column(db.String(1000))
 
 
@@ -111,3 +111,12 @@ class Segmentation(db.Model):
     extra = db.Column(Text)
 
     Answer = db.relationship('Answer')
+
+
+class VTable(db.Model):
+    __tablename__ = 'vtable'
+
+    sid = db.Column(String(10), primary_key=True)
+    sname = db.Column(String(255), nullable=False)
+    correctness = db.Column(String(255), nullable=False)
+    submit_id = db.Column(String(10), nullable=False)

@@ -44,8 +44,8 @@ class SchemaList(Resource):
     @auth_all(inject=False)
     def get(self):
         schemas = models.Schema.query.filter_by()
-        data = [marshal(schema,schema_fields) for schema in schemas]
-        return {'data':data}, HTTP_OK
+        data = [marshal(schema, schema_fields) for schema in schemas]
+        return {'data': data}, HTTP_OK
 
     @auth_admin(inject=False)
     def post(self):
@@ -54,7 +54,9 @@ class SchemaList(Resource):
         schema.description = request.json.get('description')
         schema.keywords = schema.name
         if schema.name is not None:
-            schema.path = os.path.join(save_db_path,schema.name+'.db')
+            # schema.path = os.path.join(save_db_path + "\\\\", schema.name+'.db')
+            schema.path = r"G:\Code\SQL_OJ\Sql-Online-Judge-Server\db" + "\\" + schema.name + ".db"
+
             db.session.add(schema)
             db.session.commit()
             conn = sqlite3.connect(schema.path)

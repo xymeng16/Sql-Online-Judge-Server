@@ -3,9 +3,10 @@
 -- Model: New Model    Version: 1.0
 -- MySQL Workbench Forward Engineering
 
-SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
-SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
-SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
+SET @OLD_UNIQUE_CHECKS = @@UNIQUE_CHECKS, UNIQUE_CHECKS = 0;
+SET @OLD_FOREIGN_KEY_CHECKS = @@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS = 0;
+SET @OLD_SQL_MODE = @@SQL_MODE, SQL_MODE =
+        'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
 
 -- -----------------------------------------------------
 -- Schema sql_online_judge
@@ -14,182 +15,200 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,N
 -- -----------------------------------------------------
 -- Schema sql_online_judge
 -- -----------------------------------------------------
-CREATE SCHEMA IF NOT EXISTS `sql_online_judge` ;
-USE `sql_online_judge` ;
+CREATE DATABASE IF NOT EXISTS `sql_online_judge`;
+USE `sql_online_judge`;
 
 -- -----------------------------------------------------
 -- Table `sql_online_judge`.`Student`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `sql_online_judge`.`Student` (
-  `id` VARCHAR(15) NOT NULL,
-  `password` VARCHAR(20) NOT NULL,
-  `session` VARCHAR(128) NULL,
-  `name` VARCHAR(16) NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE INDEX `id_UNIQUE` (`id` ASC) VISIBLE,
-  UNIQUE INDEX `session_UNIQUE` (`session` ASC) VISIBLE)
-ENGINE = InnoDB;
+CREATE TABLE IF NOT EXISTS `sql_online_judge`.`Student`
+(
+    `id`       VARCHAR(15)  NOT NULL,
+    `password` VARCHAR(20)  NOT NULL,
+    `session`  VARCHAR(128) NULL,
+    `name`     VARCHAR(16)  NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE INDEX `id_UNIQUE` (`id` ASC),
+    UNIQUE INDEX `session_UNIQUE` (`session` ASC)
+)
+    ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
 -- Table `sql_online_judge`.`Schema`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `sql_online_judge`.`Schema` (
-  `id` INT NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(45) NOT NULL,
-  `path` VARCHAR(200) NOT NULL,
-  `keywords` VARCHAR(10000) NOT NULL,
-  `description` VARCHAR(1000) NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE INDEX `path_UNIQUE` (`path` ASC) VISIBLE)
-ENGINE = InnoDB;
+CREATE TABLE IF NOT EXISTS `sql_online_judge`.`Schema`
+(
+    `id`          INT            NOT NULL AUTO_INCREMENT,
+    `name`        VARCHAR(45)    NOT NULL,
+    `path`        VARCHAR(200)   NOT NULL,
+    `keywords`    VARCHAR(10000) NOT NULL,
+    `description` VARCHAR(1000)  NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE INDEX `path_UNIQUE` (`path` ASC)
+)
+    ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
 -- Table `sql_online_judge`.`Question`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `sql_online_judge`.`Question` (
-  `id` INT NOT NULL AUTO_INCREMENT,
-  `idSchema` INT NOT NULL,
-  `title` VARCHAR(1000) NOT NULL,
-  `text` VARCHAR(5000) NOT NULL,
-  `score` INT NOT NULL DEFAULT 5,
-  `result` VARCHAR(10000) NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE INDEX `id_UNIQUE` (`id` ASC) VISIBLE,
-  INDEX `idSchema_idx` (`idSchema` ASC) VISIBLE,
-  CONSTRAINT `fkSchema_Question`
-    FOREIGN KEY (`idSchema`)
-    REFERENCES `sql_online_judge`.`Schema` (`id`)
-    ON DELETE CASCADE
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+CREATE TABLE IF NOT EXISTS `sql_online_judge`.`Question`
+(
+    `id`       INT            NOT NULL AUTO_INCREMENT,
+    `idSchema` INT            NOT NULL,
+    `title`    VARCHAR(1000)  NOT NULL,
+    `text`     VARCHAR(5000)  NOT NULL,
+    `score`    INT            NOT NULL DEFAULT 5,
+    `result`   VARCHAR(10000) NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE INDEX `id_UNIQUE` (`id` ASC),
+    INDEX `idSchema_idx` (`idSchema` ASC),
+    CONSTRAINT `fkSchema_Question`
+        FOREIGN KEY (`idSchema`)
+            REFERENCES `sql_online_judge`.`Schema` (`id`)
+            ON DELETE CASCADE
+            ON UPDATE NO ACTION
+)
+    ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
 -- Table `sql_online_judge`.`Answer`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `sql_online_judge`.`Answer` (
-  `id` INT NOT NULL AUTO_INCREMENT,
-  `idQuestion` INT NOT NULL,
-  `sql` VARCHAR(400) NOT NULL,
-  `json` VARCHAR(600) NULL,
-  PRIMARY KEY (`id`),
-  CONSTRAINT `fkQuestion_Answer`
-    FOREIGN KEY (`idQuestion`)
-    REFERENCES `sql_online_judge`.`Question` (`id`)
-    ON DELETE CASCADE
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+CREATE TABLE IF NOT EXISTS `sql_online_judge`.`Answer`
+(
+    `id`         INT          NOT NULL AUTO_INCREMENT,
+    `idQuestion` INT          NOT NULL,
+    `sql`        VARCHAR(400) NOT NULL,
+    `json`       VARCHAR(600) NULL,
+    PRIMARY KEY (`id`),
+    CONSTRAINT `fkQuestion_Answer`
+        FOREIGN KEY (`idQuestion`)
+            REFERENCES `sql_online_judge`.`Question` (`id`)
+            ON DELETE CASCADE
+            ON UPDATE NO ACTION
+)
+    ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
 -- Table `sql_online_judge`.`Segmentation`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `sql_online_judge`.`Segmentation` (
-  `id` INT NOT NULL AUTO_INCREMENT,
-  `idAnswer` INT NOT NULL,
-  `rank` INT NOT NULL,
-  `score` INT NOT NULL,
-  `data` TEXT(150) NOT NULL,
-  `extra` TEXT(150) NULL,
-  PRIMARY KEY (`id`),
-  INDEX `idAnswer_idx` (`idAnswer` ASC) VISIBLE,
-  CONSTRAINT `fkAnswer_Segmentation`
-    FOREIGN KEY (`idAnswer`)
-    REFERENCES `sql_online_judge`.`Answer` (`id`)
-    ON DELETE CASCADE
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+CREATE TABLE IF NOT EXISTS `sql_online_judge`.`Segmentation`
+(
+    `id`       INT       NOT NULL AUTO_INCREMENT,
+    `idAnswer` INT       NOT NULL,
+    `rank`     INT       NOT NULL,
+    `score`    INT       NOT NULL,
+    `data`     TEXT(150) NOT NULL,
+    `extra`    TEXT(150) NULL,
+    PRIMARY KEY (`id`),
+    INDEX `idAnswer_idx` (`idAnswer` ASC),
+    CONSTRAINT `fkAnswer_Segmentation`
+        FOREIGN KEY (`idAnswer`)
+            REFERENCES `sql_online_judge`.`Answer` (`id`)
+            ON DELETE CASCADE
+            ON UPDATE NO ACTION
+)
+    ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
 -- Table `sql_online_judge`.`Submit`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `sql_online_judge`.`Submit` (
-  `id` INT NOT NULL AUTO_INCREMENT,
-  `idStudent` VARCHAR(15) NOT NULL,
-  `idQuestion` INT NOT NULL,
-  `idAnswer` INT NOT NULL,
-  `score` INT NOT NULL,
-  `answer` VARCHAR(300) NOT NULL,
-  `correct` VARCHAR(300) NOT NULL,
-  `segmentJson` VARCHAR(5000) NOT NULL,
-  `spelling` INT NOT NULL,
-  `type` INT NOT NULL,
-  `result` VARCHAR(5000) NOT NULL,
-  `time` TIMESTAMP NOT NULL DEFAULT NOW(),
-  `info` VARCHAR(500) NULL,
-  PRIMARY KEY (`id`),
-  INDEX `idStudent_idx` (`idStudent` ASC) VISIBLE,
-  INDEX `idQuestion_idx` (`idQuestion` ASC) VISIBLE,
-  INDEX `fkAnswer_Submit_idx` (`idAnswer` ASC) VISIBLE,
-  CONSTRAINT `fkStudent_Submit`
-    FOREIGN KEY (`idStudent`)
-    REFERENCES `sql_online_judge`.`Student` (`id`)
-    ON DELETE CASCADE
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fkQuestion_Submit`
-    FOREIGN KEY (`idQuestion`)
-    REFERENCES `sql_online_judge`.`Question` (`id`)
-    ON DELETE CASCADE
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fkAnswer_Submit`
-    FOREIGN KEY (`idAnswer`)
-    REFERENCES `sql_online_judge`.`Answer` (`id`)
-    ON DELETE CASCADE
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+CREATE TABLE IF NOT EXISTS `sql_online_judge`.`Submit`
+(
+    `id`          INT           NOT NULL AUTO_INCREMENT,
+    `idStudent`   VARCHAR(15)   NOT NULL,
+    `idQuestion`  INT           NOT NULL,
+    `idAnswer`    INT           NOT NULL,
+    `score`       INT           NOT NULL,
+    `answer`      VARCHAR(300)  NOT NULL,
+    `correct`     VARCHAR(300)  NOT NULL,
+    `segmentJson` VARCHAR(5000) NOT NULL,
+    `spelling`    INT           NOT NULL,
+    `type`        INT           NOT NULL,
+    `result`      VARCHAR(5000) NOT NULL,
+    `time`        TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `info`        VARCHAR(500)  NULL,
+    PRIMARY KEY (`id`),
+    INDEX `idStudent_idx` (`idStudent` ASC),
+    INDEX `idQuestion_idx` (`idQuestion` ASC),
+    INDEX `fkAnswer_Submit_idx` (`idAnswer` ASC),
+    CONSTRAINT `fkStudent_Submit`
+        FOREIGN KEY (`idStudent`)
+            REFERENCES `sql_online_judge`.`Student` (`id`)
+            ON DELETE CASCADE
+            ON UPDATE NO ACTION,
+    CONSTRAINT `fkQuestion_Submit`
+        FOREIGN KEY (`idQuestion`)
+            REFERENCES `sql_online_judge`.`Question` (`id`)
+            ON DELETE CASCADE
+            ON UPDATE NO ACTION,
+    CONSTRAINT `fkAnswer_Submit`
+        FOREIGN KEY (`idAnswer`)
+            REFERENCES `sql_online_judge`.`Answer` (`id`)
+            ON DELETE CASCADE
+            ON UPDATE NO ACTION
+)
+    ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
 -- Table `sql_online_judge`.`Table`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `sql_online_judge`.`Table` (
-  `id` INT NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(45) NULL,
-  `idSchema` INT NOT NULL,
-  `sql` VARCHAR(500) NOT NULL,
-  `description` VARCHAR(1000) NULL,
-  PRIMARY KEY (`id`),
-  INDEX `idSchema_idx` (`idSchema` ASC) VISIBLE,
-  CONSTRAINT `fkSchema_Table`
-    FOREIGN KEY (`idSchema`)
-    REFERENCES `sql_online_judge`.`Schema` (`id`)
-    ON DELETE CASCADE
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+CREATE TABLE IF NOT EXISTS `sql_online_judge`.`Table`
+(
+    `id`          INT           NOT NULL AUTO_INCREMENT,
+    `name`        VARCHAR(45)   NULL,
+    `idSchema`    INT           NOT NULL,
+    `sql`         VARCHAR(500)  NOT NULL,
+    `description` VARCHAR(1000) NULL,
+    PRIMARY KEY (`id`),
+    INDEX `idSchema_idx` (`idSchema` ASC),
+    CONSTRAINT `fkSchema_Table`
+        FOREIGN KEY (`idSchema`)
+            REFERENCES `sql_online_judge`.`Schema` (`id`)
+            ON DELETE CASCADE
+            ON UPDATE NO ACTION
+)
+    ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
 -- Table `sql_online_judge`.`Insert`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `sql_online_judge`.`Insert` (
-  `id` INT NOT NULL AUTO_INCREMENT,
-  `idTable` INT NOT NULL,
-  `sql` VARCHAR(500) NOT NULL,
-  PRIMARY KEY (`id`),
-  INDEX `idTable_idx` (`idTable` ASC) VISIBLE,
-  CONSTRAINT `fkTable_Insert`
-    FOREIGN KEY (`idTable`)
-    REFERENCES `sql_online_judge`.`Table` (`id`)
-    ON DELETE CASCADE
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+CREATE TABLE IF NOT EXISTS `sql_online_judge`.`Insert`
+(
+    `id`      INT          NOT NULL AUTO_INCREMENT,
+    `idTable` INT          NOT NULL,
+    `sql`     VARCHAR(500) NOT NULL,
+    PRIMARY KEY (`id`),
+    INDEX `idTable_idx` (`idTable` ASC),
+    CONSTRAINT `fkTable_Insert`
+        FOREIGN KEY (`idTable`)
+            REFERENCES `sql_online_judge`.`Table` (`id`)
+            ON DELETE CASCADE
+            ON UPDATE NO ACTION
+)
+    ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
 -- Table `sql_online_judge`.`Admin`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `sql_online_judge`.`Admin` (
-  `name` VARCHAR(30) NOT NULL,
-  `password` VARCHAR(45) NOT NULL,
-  `session` VARCHAR(128) NULL,
-  `extra` VARCHAR(500) NULL,
-  PRIMARY KEY (`name`))
-ENGINE = InnoDB;
+CREATE TABLE IF NOT EXISTS `sql_online_judge`.`Admin`
+(
+    `name`     VARCHAR(30)  NOT NULL,
+    `password` VARCHAR(45)  NOT NULL,
+    `session`  VARCHAR(128) NULL,
+    `extra`    VARCHAR(500) NULL,
+    PRIMARY KEY (`name`)
+)
+    ENGINE = InnoDB;
 
 
-SET SQL_MODE=@OLD_SQL_MODE;
-SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
-SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
+SET SQL_MODE = @OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS = @OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS = @OLD_UNIQUE_CHECKS;

@@ -83,5 +83,11 @@
         </library>
       </libraries>
     </data-source>
+    <data-source source="LOCAL" name="MySQL - @localhost" uuid="3285bdca-3dba-40ac-b75c-05b8b38a85ce">
+      <driver-ref>mariadb</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.mariadb.jdbc.Driver</jdbc-driver>
+      <jdbc-url>jdbc:mariadb://127.0.0.1:3306/sql_online_judge</jdbc-url>
+    </data-source>
   </component>
 </project>
