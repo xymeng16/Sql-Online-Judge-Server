@@ -6,6 +6,7 @@ from config import *
 from flask import request
 import os
 import sqlite3
+import cx_Oracle
 import json
 
 schema_fields = {
