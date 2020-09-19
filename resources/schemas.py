@@ -56,8 +56,8 @@ class SchemaList(Resource):
         schema.keywords = schema.name
         if schema.name is not None:
             # schema.path = os.path.join(save_db_path + "\\\\", schema.name+'.db')
-            schema.path = r"G:\Code\SQL_OJ\Sql-Online-Judge-Server\db" + "\\" + schema.name + ".db"
-
+            schema.path = r"D:\Code\Sql-Online-Judge-Server\db" + "\\" + schema.name + ".db"
+            print(schema.path)
             db.session.add(schema)
             db.session.commit()
             conn = sqlite3.connect(schema.path)

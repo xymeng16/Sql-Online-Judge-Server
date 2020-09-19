@@ -71,9 +71,11 @@ class RowsList(Resource):
         row.idTable = idTable
         row.sql = request.json.get('sql')
         data = request.json.get('data')
+        # print(str(tuple(data)))
         table = models.Table.query.get(idTable)
         if data is not None and row.sql is None:
-            row.sql='INSERT INTO '+table.name+' VALUES'+str(tuple(data))
+            row.sql = 'INSERT INTO ' + table.name + ' VALUES' + str(tuple(data))[:-2]+")"
+            print(row.sql)
         schema = table.Schema
         if schema is not None and row.sql is not None:
             conn = sqlite3.connect(schema.path)
