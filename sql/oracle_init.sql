@@ -1,0 +1,1 @@
+create table test(sno number(10), primary key(sno));

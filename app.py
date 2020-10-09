@@ -2,6 +2,7 @@ from flask import Flask
 from flask_restful import Api
 import flask_cors
 from exts import db
+import exts
 from resources.adminSession import AdminSession
 from resources.studentSession import StudentSession
 from resources.schemas import Schema, SchemaList
@@ -22,6 +23,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/sql_onl
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 flask_cors.CORS(app)
+
 
 @app.route('/')
 def hello_world():
@@ -61,4 +63,6 @@ api.add_resource(Stats, '/question/<int:question_id>/stats')
 api.add_resource(CheckResult, '/check_result/<int:submit_id>')
 
 if __name__ == '__main__':
+    config.init_stu_oracle_conns()
+    exts.init_oracle()
     app.run(debug=True)

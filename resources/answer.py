@@ -11,6 +11,7 @@ import sqlparse
 from common.for_sqlite import gen_answer_sql_result, judge_schema_table_rows_empty
 from common.segment import Segment
 import math
+import traceback
 
 answer_field = {
     'id': fields.Integer,
@@ -67,6 +68,7 @@ class AnswerList(Resource):
     # NOTE: Answer sql
     @auth_admin(inject=False)
     def post(self, idQuestion):
+        print("getting into answerlist post")
         answer = models.Answer()
         answer.idQuestion = idQuestion
         question = models.Question.query.get(answer.idQuestion)
@@ -75,39 +77,47 @@ class AnswerList(Resource):
             return get_shortage_error_dic("idQuestion data"), HTTP_Bad_Request
         if question is None:
             return get_common_error_dic("question id is wrong"), HTTP_Bad_Request
-        if judge_schema_table_rows_empty(question.idSchema):
-            return get_common_error_dic('schema table is empty!')
-        try:
-            answer.sql = ' '.join(sqlparse.format(answer.sql, keyword_case='upper').split())
-            parsed = moz_sql_parser.parse(answer.sql)
-            answer.json = json.dumps(parsed)
-        except Exception as e:
-            return get_except_error(e)
+        # if judge_schema_table_rows_empty(question.idSchema):
+        #     return get_common_error_dic('schema table is empty!')
+        # try:
+        #     # answer.sql = ' '.join(sqlparse.format(answer.sql, keyword_case='upper').split())
+        #     # parsed = moz_sql_parser.parse(answer.sql)
+        #     # answer.json = json.dumps(parsed, default=str)
+        # except Exception as e:
+        #     print("error: " + e.__str__())
+        #     return get_except_error(e)
         # TODO: gen segmentation, gen result
         schema = models.Schema.query.get(question.idSchema)
         try:
-            result = gen_answer_sql_result(schema, answer.sql)
+            # cx_Oracle.init_oracle_client(lib_dir=r"D:\Dropbox\Courses\TA\CS3402\lab\instantclient_19_8")
+            dsn = cx_Oracle.makedsn(host="ora11g.cs.cityu.edu.hk", port=1522, service_name="orcl.cs.cityu.edu.hk")
+            conn = cx_Oracle.connect("xianmeng5", "Mxy970207", dsn)
+            print("answer.sql: " + answer.sql)
+            result = gen_answer_sql_result(conn, schema, answer.sql)
             if question.result is None:
-                question.result = json.dumps(result)
+                question.result = json.dumps(result, default=str)
             else:
                 origin = json.loads(question.result)
                 if origin != result:
                     return get_common_error_dic(
-                        'result not match origin: %s your commit %s' % (question.result, json.dumps(result)))
+                        'result not match origin: %s your commit %s' % (question.result, json.dumps(result, default=str)))
         except Exception as e:
+            print("error: " + e.__str__())
+            print(answer.sql.strip('\n').strip(';'))
+            traceback.print_tb(e.__traceback__)
             return get_common_error_dic(str(e)), HTTP_Bad_Request
 
         db.session.add(answer)
         db.session.commit()
 
-        segment = Segment(answer.sql)
-        segment_score = math.ceil(question.score/len(segment.segment_str))
-        for idx,segment_str in enumerate(segment.segment_str):
-            db_segment = models.Segmentation()
-            db_segment.score = segment_score
-            db_segment.data = segment_str
-            db_segment.idAnswer = answer.id
-            db_segment.rank = idx
-            db.session.add(db_segment)
-        db.session.commit()
+        # segment = Segment(answer.sql)
+        # segment_score = math.ceil(question.score/len(segment.segment_str))
+        # for idx,segment_str in enumerate(segment.segment_str):
+        #     db_segment = models.Segmentation()
+        #     db_segment.score = segment_score
+        #     db_segment.data = segment_str
+        #     db_segment.idAnswer = answer.id
+        #     db_segment.rank = idx
+        #     db.session.add(db_segment)
+        # db.session.commit()
         return {}, HTTP_Created

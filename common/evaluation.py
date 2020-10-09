@@ -10,6 +10,8 @@ import Levenshtein
 import sqlparse.keywords
 from common.for_sqlite import recover_schema
 from common.segment import Segment
+import cx_Oracle
+import config
 # import re
 
 from flask_restful import abort
@@ -24,6 +26,7 @@ def evaluation(submit: models.Submit):
     question = submit.Question
     answers = models.Answer.query.filter_by(idQuestion=question.id)
     student = submit.Student
+    print(config.stu_oracle_conns[student.session])
 
     recover_schema(schema)
 
@@ -38,14 +41,19 @@ def evaluation(submit: models.Submit):
     submit.spelling = count_spelling_err
     submit.idAnswer = answer.id
     submit.Answer = answer
-
-    conn = sqlite3.connect(path)
-    cur = conn.cursor()
+    oracle_conn = config.stu_oracle_conns[student.session]
+    # conn = sqlite3.connect(path)
+    cur = oracle_conn.cursor()
     try:
-        cur.execute(correct_sql)
+        print("correct_sql:" + correct_sql)
+        sqls = correct_sql.split('\n')
+        for line in sqls:
+            cur.execute(line.strip('\n').strip(';'))
+        # cur.execute(correct_sql)
         values = cur.fetchall()
+        # print(values)
         result = {'data': values, 'len': len(values)}
-        submit.result = json.dumps(result)
+        submit.result = json.dumps(result, default=str)
         result = json.loads(submit.result)
         if question.result is None:
             abort(500)
@@ -63,74 +71,74 @@ def evaluation(submit: models.Submit):
         type_ = type_submit.error_syntax
     finally:
         cur.close()
-        conn.close()
+        # conn.close()
 
     submit.segmentJson = json.dumps({'compare': []})
     if type_ != type_submit.error_spelling and type_ != type_submit.all_right:
         submit.info = ' '.join(map(str, correct)) + '\n' + syntax_error_msg
-        if type_ == type_submit.error_result:
-            submit.score = question.score - count_spelling_err
-            stu_segments = Segment(submit.correct)
-            segments = models.Segmentation.query.filter_by(idAnswer=submit.Answer.id).order_by(models.Segmentation.rank)
-            segments = [s for s in segments]
-            submit.segmentJson = {'compare': []}
-            idx_student_segment = 0
-            idx_segment = 0
-            while idx_segment < len(segments):
-                compare = {'right_segment': segments[idx_segment].data}
-                if idx_student_segment < len(stu_segments.segment_str) and Segment.filter_segment_punctuation(
-                        segments[idx_segment].data) == Segment.filter_segment_punctuation(
-                        stu_segments.segment_str[idx_student_segment]):
-                    compare['student_segment'] = stu_segments.segment_str[idx_student_segment]
-                    compare['deduction'] = 0
-                    idx_student_segment += 1
-                else:
-                    tmp_idx = idx_student_segment
-                    max_score = 0
-                    max_idx = tmp_idx
-                    while tmp_idx < len(stu_segments.segment_str):
-                        score = Levenshtein.ratio(Segment.filter_segment_punctuation(segments[idx_segment].data),
-                                                  Segment.filter_segment_punctuation(stu_segments.segment_str[tmp_idx]))
-                        if score > max_score:
-                            max_idx = tmp_idx
-                            max_score = score
-                        tmp_idx += 1
-                    if max_score < 0.6:
-                        compare['student_segment'] = ''
-                        compare['deduction'] = segments[idx_segment].score
-                        submit.score -= segments[idx_segment].score
-                    else:
-                        compare['student_segment'] = stu_segments.segment_str[max_idx]
-                        while idx_student_segment < max_idx:
-                            submit.segmentJson['compare'].append({
-                                'student_segment': stu_segments.segment_str[idx_student_segment],
-                                'right_segment': '',
-                                'deduction': 2
-                            })
-                            submit.score -= 2
-                            idx_student_segment += 1
-                        idx_student_segment = max_idx + 1
-                        if max_score == 1:
-                            compare['deduction'] = 0
-                        else:
-                            compare['deduction'] = segments[idx_segment].score
-                            submit.score -= segments[idx_segment].score
+        # if type_ == type_submit.error_result:
+        #     submit.score = question.score - count_spelling_err
+        #     # stu_segments = Segment(submit.correct)
+        #     segments = models.Segmentation.query.filter_by(idAnswer=submit.Answer.id).order_by(models.Segmentation.rank)
+        #     segments = [s for s in segments]
+        #     submit.segmentJson = {'compare': []}
+        #     idx_student_segment = 0
+        #     idx_segment = 0
+        #     while idx_segment < len(segments):
+        #         compare = {'right_segment': segments[idx_segment].data}
+        #         if idx_student_segment < len(stu_segments.segment_str) and Segment.filter_segment_punctuation(
+        #                 segments[idx_segment].data) == Segment.filter_segment_punctuation(
+        #                 stu_segments.segment_str[idx_student_segment]):
+        #             compare['student_segment'] = stu_segments.segment_str[idx_student_segment]
+        #             compare['deduction'] = 0
+        #             idx_student_segment += 1
+        #         else:
+        #             tmp_idx = idx_student_segment
+        #             max_score = 0
+        #             max_idx = tmp_idx
+        #             while tmp_idx < len(stu_segments.segment_str):
+        #                 score = Levenshtein.ratio(Segment.filter_segment_punctuation(segments[idx_segment].data),
+        #                                           Segment.filter_segment_punctuation(stu_segments.segment_str[tmp_idx]))
+        #                 if score > max_score:
+        #                     max_idx = tmp_idx
+        #                     max_score = score
+        #                 tmp_idx += 1
+        #             if max_score < 0.6:
+        #                 compare['student_segment'] = ''
+        #                 compare['deduction'] = segments[idx_segment].score
+        #                 submit.score -= segments[idx_segment].score
+        #             else:
+        #                 compare['student_segment'] = stu_segments.segment_str[max_idx]
+        #                 while idx_student_segment < max_idx:
+        #                     submit.segmentJson['compare'].append({
+        #                         'student_segment': stu_segments.segment_str[idx_student_segment],
+        #                         'right_segment': '',
+        #                         'deduction': 2
+        #                     })
+        #                     submit.score -= 2
+        #                     idx_student_segment += 1
+        #                 idx_student_segment = max_idx + 1
+        #                 if max_score == 1:
+        #                     compare['deduction'] = 0
+        #                 else:
+        #                     compare['deduction'] = segments[idx_segment].score
+        #                     submit.score -= segments[idx_segment].score
+        #
+        #         idx_segment += 1
+        #         submit.segmentJson['compare'].append(compare)
+        #     while idx_student_segment < len(stu_segments.segment_str):
+        #         submit.segmentJson['compare'].append({
+        #             'student_segment': stu_segments.segment_str[idx_student_segment],
+        #             'right_segment': '',
+        #             'deduction': 2
+        #         })
+        #         submit.score -= 2
+        #         idx_student_segment += 1
 
-                idx_segment += 1
-                submit.segmentJson['compare'].append(compare)
-            while idx_student_segment < len(stu_segments.segment_str):
-                submit.segmentJson['compare'].append({
-                    'student_segment': stu_segments.segment_str[idx_student_segment],
-                    'right_segment': '',
-                    'deduction': 2
-                })
-                submit.score -= 2
-                idx_student_segment += 1
-
-        elif type_ == type_submit.error_syntax:
-            submit.score = 0
-            pass
-    submit.score = 0 if submit.score < 0 else submit.score
+        # elif type_ == type_submit.error_syntax:
+        #     submit.score = 0
+        #     pass
+    submit.score = 0
     submit.segmentJson = json.dumps(submit.segmentJson)
     submit.type = type_.value
     os.remove(path)
@@ -193,4 +201,5 @@ def correct_spelling(stem, answers, schema):
             max_answer = answers[i]
             max_value = ratio
 
-    return correct_sql, count_spelling_err, max_answer, correct
+    # return correct_sql, count_spelling_err, max_answer, correct
+    return stem.strip(';'), count_spelling_err, max_answer, correct

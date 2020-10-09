@@ -1,4 +1,5 @@
 from enum import Enum, unique
+import cx_Oracle
 
 HTTP_OK = 200  # 请求成功,并且处理无错误
 HTTP_Created = 201  # 已创建。成功请求并创建了新的资源
@@ -40,6 +41,13 @@ errors = {
         'extra': "IntegrityError"
     }
 }
+dsn = cx_Oracle.makedsn("ora11g", 1522, service_name="orcl.cs.cityu.edu.hk")
+
+
+def init_stu_oracle_conns():
+    global stu_oracle_conns
+    stu_oracle_conns = dict()  # Students' oracle connection pool
+    print("Global students' oracle connection pool is initialized")
 
 
 @unique
@@ -60,3 +68,28 @@ def get_common_error_dic(msg):
 
 def get_except_error(e, state=HTTP_Bad_Request):
     return {'msg': str(e)}, state
+
+
+def RunSqlScript(conn, scriptName, **kwargs):
+    cursor = conn.cursor()
+    sqlFile = open(scriptName)
+    try:
+        cursor.execute("drop table dept")
+        cursor.execute("drop table salgrade")
+        cursor.execute("drop table emp")
+        cursor.execute("drop table MY_EMP")
+    except Exception as e:
+        print(e.__str__())
+        print("Table not exists!")
+    for line in sqlFile:
+        # print(line)
+        # print(line.strip('\n').strip(';'))
+        cursor.execute(line.strip('\n').strip(';'))
+
+
+def RunMultiLineSql(conn, sql):
+    cur = conn.cursor()
+    sqls = sql.spilt('\n')
+    for line in sqls:
+        cur.execute(line.strip('\n').strip(';'))
+    return cur
